@@ -57,6 +57,7 @@ body::before {
   position: relative;
   z-index: 1;
   overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 /* Green top bar */
@@ -214,7 +215,6 @@ body::before {
   position: relative;
 }
 
-/* Corner accents on QR frame */
 .qr-frame::before, .qr-frame::after {
   content: '';
   position: absolute;
@@ -264,18 +264,11 @@ body::before {
   box-shadow: 0 4px 12px rgba(5,150,105,0.3);
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(5,150,105,0.4);
-}
-
 .btn-secondary {
   background: #fff;
   color: var(--muted);
   border: 1.5px solid var(--border);
 }
-
-.btn-secondary:hover { background: #f8fafc; }
 
 /* Footer inside card */
 .card-footer {
@@ -299,10 +292,8 @@ body::before {
   background: rgba(255,255,255,0.3);
 }
 
-/* Canvas hidden for download */
 #downloadCanvas { display: none; }
 
-/* Page fade-in */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -320,18 +311,13 @@ body::before {
 <body>
 
 <div class="card" id="mainCard">
-
-  <!-- Header -->
   <div class="card-header">
     <div class="check-ring">✅</div>
     <h1 id="headTitle">Pendaftaran Berhasil</h1>
     <div class="subtitle" id="headSub">Okayama Central Mosque — EID 2026</div>
   </div>
 
-  <!-- Body -->
   <div class="card-body">
-
-    <!-- ID Badge -->
     <div class="id-badge">
       <div>
         <div class="badge-label" id="lblParticipantId">ID Peserta</div>
@@ -340,7 +326,6 @@ body::before {
       <div class="badge-icon"><i class="fas fa-ticket-alt"></i></div>
     </div>
 
-    <!-- Info Grid -->
     <div class="info-grid">
       <div class="info-item full">
         <div class="lbl"><i class="fas fa-user"></i> <span id="lblNama">Nama</span></div>
@@ -372,7 +357,6 @@ body::before {
       </div>
     </div>
 
-    <!-- QR Section -->
     <div class="divider" id="divQR">QR Check-in</div>
 
     <div class="qr-section">
@@ -382,7 +366,6 @@ body::before {
       <p class="qr-note" id="qrNote">Simpan kode QR ini dan tunjukkan saat check-in di lokasi.</p>
     </div>
 
-    <!-- Buttons -->
     <div class="btn-group">
       <a href="index.html" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i>
@@ -393,10 +376,8 @@ body::before {
         <span id="btnSave">Simpan Kartu</span>
       </button>
     </div>
-
   </div>
 
-  <!-- Card Footer -->
   <div class="card-footer">
     <span>© 2026 Masjid Central Okayama</span>
     <div class="dot"></div>
@@ -404,21 +385,13 @@ body::before {
   </div>
 </div>
 
-<!-- Hidden canvas for download -->
 <canvas id="downloadCanvas"></canvas>
 
 <script>
-// ============ LANGUAGE DETECTION ============
 const params = new URLSearchParams(window.location.search);
-
-// Prioritize lang sent from form, fallback to browser
 const urlLang = params.get("lang");
-const lang = urlLang || (
-  navigator.language.startsWith("ja") ? "ja" :
-  navigator.language.startsWith("en") ? "en" : "id"
-);
+const lang = urlLang || (navigator.language.startsWith("ja") ? "ja" : navigator.language.startsWith("en") ? "en" : "id");
 
-// ============ TRANSLATIONS ============
 const t = {
   headTitle:     { id: "Pendaftaran Berhasil", en: "Registration Successful", ja: "登録が完了しました" },
   headSub:       { id: "Okayama Central Mosque — EID 2026", en: "Okayama Central Mosque — EID 2026", ja: "岡山中央モスク — EID 2026" },
@@ -438,15 +411,12 @@ const t = {
   genderFemale:  { id: "Perempuan", en: "Female", ja: "女性" },
 };
 
-// Apply translations
 Object.keys(t).forEach(id => {
   const el = document.getElementById(id);
   if (el) el.textContent = t[id][lang] || t[id].id;
 });
 
-// ============ FILL DATA ============
 const get = key => params.get(key) || "—";
-
 document.getElementById("resID").textContent      = get("id");
 document.getElementById("resNama").textContent    = get("nama_lengkap");
 document.getElementById("resEmail").textContent   = get("email");
@@ -454,258 +424,183 @@ document.getElementById("resHP").textContent      = get("no_hp");
 document.getElementById("resDomisili").textContent = get("domisili");
 document.getElementById("resUsia").textContent    = get("usia") !== "—" ? get("usia") + " th" : "—";
 
-// Gender translation
 let jk = get("jk");
 if (jk === "Laki-laki") jk = t.genderMale[lang];
-if (jk === "Perempuan")  jk = t.genderFemale[lang];
+if (jk === "Perempuan") jk = t.genderFemale[lang];
 document.getElementById("resJK").textContent = jk;
 
-// Jumlah orang
 const jumlah = get("jumlah_orang");
-document.getElementById("resJumlah").textContent = jumlah !== "—"
-  ? jumlah + " " + t.paxLabel[lang]
-  : "—";
+document.getElementById("resJumlah").textContent = jumlah !== "—" ? jumlah + " " + t.paxLabel[lang] : "—";
 
-// ============ QR CODE ============
 const participantID = params.get("id") || "UNKNOWN";
 const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(participantID)}&margin=10&color=064e3b`;
 const qrImg = document.getElementById("qrImage");
 qrImg.src = qrSrc;
 
-// ============ DOWNLOAD CARD (Canvas) ============
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  if (typeof r === 'number') r = {tl: r, tr: r, br: r, bl: r};
+  else {
+    var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+    for (var side in defaultRadius) r[side] = r[side] || defaultRadius[side];
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + r.tl, y);
+  ctx.lineTo(x + w - r.tr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+  ctx.lineTo(x + w, y + h - r.br);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+  ctx.lineTo(x + r.bl, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+  ctx.lineTo(x, y + r.tl);
+  ctx.quadraticCurveTo(x, y, x + r.tl, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) ctx.stroke();
+}
+
 async function downloadCard() {
   const btn = document.querySelector(".btn-primary");
   btn.disabled = true;
   btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>${lang === "ja" ? "生成中..." : lang === "en" ? "Generating..." : "Membuat..."}</span>`;
 
   try {
-    // Wait for QR to load
+    const response = await fetch(qrSrc);
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    
+    const qrTemp = new Image();
     await new Promise((res, rej) => {
-      if (qrImg.complete) res();
-      else { qrImg.onload = res; qrImg.onerror = rej; }
+      qrTemp.onload = res;
+      qrTemp.onerror = rej;
+      qrTemp.src = blobUrl;
     });
 
     const canvas = document.getElementById("downloadCanvas");
     const ctx = canvas.getContext("2d");
+    // PERBAIKAN: Ukuran canvas diperbesar
+    const W = 720, H = 1100;
+    canvas.width = W; canvas.height = H;
 
-    const W = 640, H = 900;
-    canvas.width = W;
-    canvas.height = H;
-
-    // Background (cream seperti index)
+    // 1. Background Cream
     ctx.fillStyle = "#f1f5f9";
     ctx.fillRect(0, 0, W, H);
 
-    // Subtle bg circle
-    const grad = ctx.createRadialGradient(W*0.15, H*0.15, 0, W*0.15, H*0.15, 300);
-    grad.addColorStop(0, "rgba(5,150,105,0.07)");
-    grad.addColorStop(1, "transparent");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-
-    // --- Header green bar (gradien #064e3b → #059669) ---
-    const hdrH = 180;
+    // 2. Header Green Gradient
+    const hdrH = 200;
     const hdrGrad = ctx.createLinearGradient(0, 0, W, hdrH);
     hdrGrad.addColorStop(0, "#064e3b");
     hdrGrad.addColorStop(1, "#059669");
-    // PERBAIKAN: gunakan angka tunggal 32, bukan array
-    roundRect(ctx, 0, 0, W, hdrH + 30, 32, hdrGrad);
+    roundRect(ctx, 0, 0, W, hdrH + 40, {bl: 32, br: 32}, hdrGrad);
 
-    // Mosque pattern on header (dots)
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    for (let x = 20; x < W; x += 40) {
-      for (let y = 20; y < hdrH; y += 40) {
-        ctx.beginPath();
-        ctx.arc(x, y, 12, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Check icon circle
+    // 3. Header Text & Icon
     ctx.fillStyle = "rgba(255,255,255,0.15)";
-    ctx.beginPath();
-    ctx.arc(W/2, 56, 34, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.font = "36px serif";
-    ctx.textAlign = "center";
-    ctx.fillText("✅", W/2, 68);
-
-    // Header title
+    ctx.beginPath(); ctx.arc(W/2, 65, 35, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 28px Georgia, serif";
-    ctx.fillText(t.headTitle[lang], W/2, 118);
+    ctx.font = "32px serif"; ctx.textAlign = "center"; ctx.fillText("✅", W/2, 77);
+    ctx.font = "bold 32px Georgia, serif"; ctx.fillText(t.headTitle[lang], W/2, 135);
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = "18px sans-serif"; ctx.fillText("Okayama Central Mosque — EID 2026", W/2, 165);
 
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.font = "500 15px sans-serif";
-    ctx.fillText("Okayama Central Mosque — EID 2026", W/2, 144);
+    // 4. ID Badge
+    const bY = 260;
+    roundRect(ctx, 40, bY, W-80, 80, 14, "#ecfdf5");
+    ctx.strokeStyle = "#10b981"; ctx.lineWidth = 2;
+    roundRect(ctx, 40, bY, W-80, 80, 14, null, true);
+    ctx.textAlign = "left"; ctx.fillStyle = "#064e3b";
+    ctx.font = "bold 12px sans-serif"; ctx.fillText((t.lblParticipantId[lang]).toUpperCase(), 65, bY + 30);
+    ctx.font = "bold 28px Georgia, serif"; ctx.fillText(get("id"), 65, bY + 62);
+    ctx.font = "28px sans-serif"; ctx.textAlign = "right"; ctx.fillText("🎫", W-65, bY + 52);
 
-    // --- ID Badge (hijau muda) ---
-    const badgeY = 210;
-    roundRect(ctx, 40, badgeY, W - 80, 68, 14, "#ecfdf5");
-    ctx.strokeStyle = "#10b981";
-    ctx.lineWidth = 1.5;
-    roundRect(ctx, 40, badgeY, W - 80, 68, 14, null, true);
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#064e3b";
-    ctx.font = "600 10px sans-serif";
-    ctx.fillText((t.lblParticipantId[lang] || "ID Peserta").toUpperCase(), 60, badgeY + 22);
-
-    ctx.fillStyle = "#064e3b";
-    ctx.font = "bold 22px Georgia, serif";
-    ctx.fillText(get("id"), 60, badgeY + 52);
-
-    // Ticket icon area
-    ctx.fillStyle = "#10b981";
-    ctx.font = "24px sans-serif";
-    ctx.textAlign = "right";
-    ctx.fillText("🎫", W - 60, badgeY + 46);
-
-    // --- Info Section ---
-    const infoStartY = 306;
-    const infoData = [
-      [t.lblNama[lang],     get("nama_lengkap"),   "fas fa-user"],
-      ["Email",              get("email"),           "fas fa-envelope"],
-      [t.lblHP[lang],        get("no_hp"),           "fas fa-phone"],
-      [t.lblDomisili[lang],  get("domisili"),        "fas fa-map-marker-alt"],
-      [t.lblUsia[lang],      (get("usia") !== "—" ? get("usia") + " th" : "—"), "fas fa-id-card"],
-      [t.lblJK[lang],        jk,                    "fas fa-venus-mars"],
-      [t.lblJumlah[lang],    (get("jumlah_orang") !== "—" ? get("jumlah_orang") + " " + t.paxLabel[lang] : "—"), "fas fa-users"],
+    // 5. Info Grid
+    const infoStartY = 370;
+    const items = [
+      [t.lblNama[lang], get("nama_lengkap")], [t.lblHP[lang], get("no_hp")],
+      ["EMAIL", get("email")], [t.lblDomisili[lang], get("domisili")],
+      [t.lblUsia[lang], get("usia") !== "—" ? get("usia") + " th" : "—"], [t.lblJK[lang], jk],
+      [t.lblJumlah[lang], document.getElementById("resJumlah").textContent]
     ];
 
-    const colW = (W - 100) / 2;
-    const rowH = 70;
-    const gap = 12;
-
-    infoData.forEach((item, i) => {
-      const isLast = i === infoData.length - 1;
-      const col = isLast ? 0 : i % 2;
-      const row = isLast ? Math.floor((infoData.length - 1) / 2) : Math.floor(i / 2);
-      const itemW = isLast ? W - 100 : colW;
-      const x = 40 + col * (colW + gap);
-      const y = infoStartY + row * (rowH + gap);
-
-      // Card bg
-      roundRect(ctx, x, y, itemW, rowH - 2, 14, "#f8fafc");
-      ctx.strokeStyle = "#e2e8f0";
-      ctx.lineWidth = 1;
-      roundRect(ctx, x, y, itemW, rowH - 2, 14, null, true);
-
-      // Label icon (bullet)
-      ctx.fillStyle = "#10b981";
-      ctx.font = "10px sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText("●", x + 12, y + 20);
-
-      ctx.fillStyle = "#475569";
-      ctx.font = "600 10px sans-serif";
-      ctx.fillText(item[0].toUpperCase(), x + 24, y + 20);
-
-      // Value
-      ctx.fillStyle = "#1e293b";
-      ctx.font = "600 14px sans-serif";
-      const maxValW = itemW - 24;
-      let valText = item[1];
-      while (ctx.measureText(valText).width > maxValW && valText.length > 4) {
-        valText = valText.slice(0, -1);
+    items.forEach((item, i) => {
+      const isFull = i === 0 || i === 6;
+      let x = 40, y = infoStartY + (i * 85), w = W-80;
+      if (i > 0 && i < 6) {
+        const subI = i - 1;
+        x = 40 + (subI % 2) * (W/2 - 35);
+        y = infoStartY + 85 + Math.floor(subI / 2) * 85;
+        w = W/2 - 50;
       }
-      if (valText !== item[1]) valText += "…";
-      ctx.fillText(valText, x + 12, y + 48);
+      if (i === 6) y = infoStartY + 340;
+
+      roundRect(ctx, x, y, w, 75, 12, "#ffffff");
+      ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 1; roundRect(ctx, x, y, w, 75, 12, null, true);
+      ctx.fillStyle = "#475569"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "left";
+      ctx.fillText(item[0].toUpperCase(), x + 15, y + 25);
+      ctx.fillStyle = "#1e293b"; ctx.font = "bold 16px sans-serif";
+      ctx.fillText(item[1], x + 15, y + 55);
     });
 
-    // --- Divider ---
-    const divY = infoStartY + Math.ceil((infoData.length) / 2) * (rowH + gap) + 4;
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
+    // 6. QR Section (PERBAIKAN: ukuran QR diperbesar, divider digeser, tambah teks instruksi)
+    const qrY = 830;
+    const qrSize = 200;
+    const frameSize = 230;
+
+    // Divider (garis putus-putus) di y = 820
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = "#cbd5e1";
     ctx.beginPath();
-    ctx.moveTo(40, divY);
-    ctx.lineTo(W - 40, divY);
+    ctx.moveTo(40, 820);
+    ctx.lineTo(W - 40, 820);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = "#475569";
-    ctx.font = "600 11px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("— QR Check-in —", W/2, divY + 18);
-
-    // --- QR Code ---
-    const qrSize = 220;
-    const qrX = (W - qrSize) / 2;
-    const qrY = divY + 32;
-
-    // QR frame
-    roundRect(ctx, qrX - 14, qrY - 14, qrSize + 28, qrSize + 28, 20, "#ffffff");
+    // Frame QR putih
+    ctx.fillStyle = "#ffffff";
+    roundRect(ctx, W/2 - frameSize/2, qrY, frameSize, frameSize, 18, "#ffffff");
     ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 2;
-    roundRect(ctx, qrX - 14, qrY - 14, qrSize + 28, qrSize + 28, 20, null, true);
+    roundRect(ctx, W/2 - frameSize/2, qrY, frameSize, frameSize, 18, null, true);
 
-    // Corner accents
-    ctx.strokeStyle = "#10b981";
-    ctx.lineWidth = 3;
-    const cAcc = 18;
-    ctx.beginPath(); ctx.moveTo(qrX - 10, qrY - 10 + cAcc); ctx.lineTo(qrX - 10, qrY - 10); ctx.lineTo(qrX - 10 + cAcc, qrY - 10); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(qrX + qrSize + 10, qrY + qrSize + 10 - cAcc); ctx.lineTo(qrX + qrSize + 10, qrY + qrSize + 10); ctx.lineTo(qrX + qrSize + 10 - cAcc, qrY + qrSize + 10); ctx.stroke();
+    // Gambar QR di tengah frame
+    ctx.drawImage(
+      qrTemp,
+      W/2 - qrSize/2,
+      qrY + (frameSize - qrSize) / 2,
+      qrSize,
+      qrSize
+    );
 
-    // Draw QR image
-    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-
-    // QR note
+    // Teks instruksi di bawah QR
     ctx.fillStyle = "#475569";
-    ctx.font = "13px sans-serif";
+    ctx.font = "14px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(t.qrNote[lang], W/2, qrY + qrSize + 36);
+    let instruksiText = "";
+    if (lang === "ja") instruksiText = "受付時にQRコードをご提示ください";
+    else if (lang === "en") instruksiText = "Show this QR code during check-in";
+    else instruksiText = "Tunjukkan QR ini saat check-in";
+    ctx.fillText(instruksiText, W/2, qrY + frameSize + 35);
 
-    // --- Footer ---
-    const ftY = H - 50;
+    // 7. Footer (digeser agar tidak terlalu mepet)
     ctx.fillStyle = "#064e3b";
-    ctx.fillRect(0, ftY, W, 50);
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "12px sans-serif";
+    ctx.fillRect(0, H - 50, W, 50);
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.font = "14px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("© 2026 Masjid Central Okayama  •  Eid al-Fitr 1447 H", W/2, ftY + 30);
+    ctx.fillText("© 2026 Masjid Central Okayama  •  Eid al-Fitr 1447 H", W/2, H - 15);
 
-    // ---- DOWNLOAD ----
-    const rawName = params.get("nama_lengkap") || "Peserta";
-    const safeName = rawName.trim().replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
-    const fileName = `QR_EID_2026_${safeName}.png`;
+    const safeName = get("nama_lengkap").trim().replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+    const link = document.createElement("a");
+    link.download = `EID_2026_${safeName}.png`;
+    link.href = canvas.toDataURL("image/png", 1.0);
+    link.click();
+    URL.revokeObjectURL(blobUrl);
 
-    canvas.toBlob(blob => {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    });
-
-  } catch (err) {
-    console.error(err);
-    alert(lang === "ja" ? "ダウンロードに失敗しました" : lang === "en" ? "Download failed" : "Gagal mengunduh. Coba lagi.");
+  } catch (e) {
+    console.error(e);
+    alert("Gagal mengunduh kartu. Silakan coba lagi.");
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<i class="fas fa-download"></i> <span>${t.btnSave[lang]}</span>`;
   }
 }
-
-// ============ HELPER: Rounded rect on Canvas ============
-function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-  if (stroke) ctx.stroke();
-}
 </script>
-
 </body>
 </html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Real-Time - OCM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
+        .navbar { background: #064e3b; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; text-align: center; transition: box-shadow .2s; }
+        .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+        .stat-card i { font-size: 24px; color: #059669; margin-bottom: 10px; }
+        .stat-card h3 { margin: 5px 0; font-size: 28px; color: #0f172a; }
+        .stat-card p { margin: 0; color: #64748b; font-size: 13px; font-weight: 600; }
+
+        /* Toolbar */
+        .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .toolbar h4 { margin: 0; flex: 1; font-size: 16px; }
+        .search-input { padding: 8px 14px; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 13px; width: 200px; }
+        .search-input:focus { outline: none; border-color: #10b981; }
+        .btn-export { background: #064e3b; color: white; padding: 8px 14px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .btn-export:hover { background: #065f46; }
+
+        /* Table */
+        .data-table { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+        .data-table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #f8fafc; padding: 14px 15px; text-align: left; color: #64748b; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+        td { padding: 13px 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .pill-hadir { background: #dcfce7; color: #15803d; }
+        .pill-belum { background: #fef2f2; color: #b91c1c; }
+
+        /* Last-updated bar */
+        #last-updated { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+
+        /* Empty / loading state */
+        .table-info { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+
+        /* Login Overlay */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #064e3b; z-index: 999;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .login-box { background: white; padding: 32px; border-radius: 20px; text-align: center; width: 300px; }
+        .login-box h3 { margin: 0 0 6px; color: #064e3b; }
+        .login-box p  { margin: 0 0 20px; color: #64748b; font-size: 13px; }
+        .login-box input {
+            width: 100%; padding: 12px; margin-bottom: 14px;
+            border-radius: 10px; border: 1.5px solid #e2e8f0;
+            box-sizing: border-box; text-align: center; font-size: 16px;
+            letter-spacing: 4px;
+        }
+        .login-box input:focus { outline: none; border-color: #10b981; }
+        .login-box button {
+            width: 100%; padding: 13px; border-radius: 10px;
+            border: none; background: #059669; color: white;
+            font-weight: 700; cursor: pointer; font-size: 15px;
+        }
+        .login-box button:hover { background: #047857; }
+        #login-err { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="login-overlay">
+    <div class="login-box">
+        <div style="font-size:40px;margin-bottom:10px">🕌</div>
+        <h3>Admin Dashboard</h3>
+        <p>Masukkan password untuk membuka dashboard</p>
+        <input type="password" id="passInput" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') login()">
+        <button onclick="login()">Buka Dashboard</button>
+        <p id="login-err">⚠️ Password salah!</p>
+    </div>
+</div>
+
+<!-- Navbar -->
+<div class="navbar">
+    <span style="font-weight:800;font-size:18px;">🕌 Pantau Peserta EID 2026</span>
+    <div style="display:flex;gap:8px;align-items:center">
+        <span id="auto-refresh-badge"
+              style="background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:20px;font-size:12px;">
+            ⏱ Auto-refresh 30s
+        </span>
+        <button onclick="loadData()"
+                style="background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;">
+            <i class="fas fa-sync-alt" id="refresh-icon"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <h3 id="stat-total-pendaftar">—</h3>
+            <p>TOTAL GRUP / KELUARGA</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-user-check"></i>
+            <h3 id="stat-total-hadir">—</h3>
+            <p>GRUP SUDAH SCAN</p>
+        </div>
+        <div class="stat-card" style="border-bottom: 4px solid #dc2626;">
+            <i class="fas fa-user-clock" style="color:#dc2626;"></i>
+            <h3 id="stat-belum-hadir" style="color:#dc2626;">—</h3>
+            <p>GRUP BELUM SCAN</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-mosque"></i>
+            <h3 id="stat-total-orang">—</h3>
+            <p>HADIR / TOTAL (ORANG)</p>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <h4>Aktivitas Kehadiran</h4>
+        <input type="search" class="search-input" id="searchInput"
+               placeholder="🔍 Cari nama / ID…" oninput="filterTable()">
+        <button class="btn-export" onclick="exportCSV()">
+            <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+    </div>
+
+    <div id="last-updated"></div>
+
+    <!-- Table -->
+    <div class="data-table">
+        <div class="data-table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Peserta</th>
+                    <th>Nama Lengkap</th>
+                    <th>Email</th>
+                    <th>No. HP</th>
+                    <th>Pax</th>
+                    <th>Status</th>
+                    <th>Waktu Scan</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="7" class="table-info">Menunggu login…</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // =============================================
+    // KONFIGURASI — gunakan SCRIPT_URL yang SAMA dengan index.html
+    // =============================================
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvLVMIbhBThHJ8l3d4Rppo1GvDbgeVjELq8_zOtzD7WHaWIaEHhVqHqyVJpgiaiDzp/exec";
+
+    // Password disimpan sebagai SHA-256 hash, bukan plaintext
+    // Hash dari "mco2026" — ganti dengan hash password baru jika perlu
+    // Cara buat hash baru: buka DevTools > Console > lalu jalankan:
+    //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('passwordBaru'))
+    //     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+    const PASS_HASH = "b0d6f305e9e5f4282bffaaecf9abf30f1a05ac820de25d3da5efde4be9e0bc33"; // hash "mco2026"
+
+    // Raw data dari server (untuk filtering di client)
+    let allData = [];
+
+    // =============================================
+    // LOGIN — bandingkan hash, bukan plaintext
+    // =============================================
+    async function login() {
+        const input = document.getElementById("passInput").value;
+        const hash  = await sha256(input);
+
+        if (hash === PASS_HASH) {
+            document.getElementById("login-overlay").style.display = "none";
+            loadData();
+            setInterval(loadData, 30000); // Auto-refresh tiap 30 detik
+        } else {
+            document.getElementById("login-err").style.display = "block";
+        }
+    }
+
+    async function sha256(str) {
+        const buf  = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    // =============================================
+    // LOAD DATA
+    // =============================================
+    async function loadData() {
+        const icon = document.getElementById("refresh-icon");
+        icon.classList.add("fa-spin");
+
+        try {
+            const res  = await fetch(`${SCRIPT_URL}?action=getList`);
+            const json = await res.json();
+
+            // Update stats
+            document.getElementById("stat-total-pendaftar").textContent = json.totalPendaftar ?? "—";
+            document.getElementById("stat-total-hadir").textContent     = json.totalHadir    ?? "—";
+            document.getElementById("stat-belum-hadir").textContent     = json.belumHadir    ?? "—";
+            document.getElementById("stat-total-orang").textContent     =
+                (json.totalOrangHadir ?? "—") + " / " + (json.totalOrangPendaftar ?? "—");
+
+            // Simpan data mentah
+            allData = json.data || [];
+
+            renderTable(allData);
+
+            // Timestamp
+            const now = new Date();
+            document.getElementById("last-updated").textContent =
+                `Terakhir diperbarui: ${now.toLocaleTimeString("id-ID")}`;
+
+        } catch (e) {
+            console.error("Gagal memuat data:", e);
+            document.getElementById("table-body").innerHTML =
+                `<tr><td colspan="7" class="table-info" style="color:#dc2626">⚠️ Gagal memuat data. Periksa koneksi.</td></tr>`;
+        } finally {
+            icon.classList.remove("fa-spin");
+        }
+    }
+
+    // =============================================
+    // RENDER TABLE — dengan sanitasi XSS
+    // =============================================
+    function renderTable(data) {
+        const tbody = document.getElementById("table-body");
+
+        if (!data.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="table-info">Belum ada data pendaftar.</td></tr>`;
+            return;
+        }
+
+        // Gunakan DocumentFragment agar DOM hanya diupdate sekali
+        const frag = document.createDocumentFragment();
+        data.forEach(row => {
+            const tr = document.createElement("tr");
+            const isHadir = row[9] === "Sudah Hadir";
+
+            // Kolom: ID, Nama, Email, HP, Pax, Status, Waktu
+            const cols = [row[0], row[2], row[3], row[4], row[8], null, row[10] || "—"];
+            cols.forEach((val, i) => {
+                const td = document.createElement("td");
+                if (i === 5) {
+                    // Status pill
+                    const span = document.createElement("span");
+                    span.className = `status-pill ${isHadir ? "pill-hadir" : "pill-belum"}`;
+                    span.textContent = isHadir ? "Hadir" : "Belum";
+                    td.appendChild(span);
+                } else {
+                    // textContent aman dari XSS
+                    td.textContent = val ?? "—";
+                    if (i === 0 || i === 6) td.style.fontSize = "12px";
+                    if (i === 1) td.style.fontWeight = "600";
+                }
+                tr.appendChild(td);
+            });
+
+            frag.appendChild(tr);
+        });
+
+        tbody.innerHTML = "";
+        tbody.appendChild(frag);
+    }
+
+    // =============================================
+    // FILTER TABEL (client-side search)
+    // =============================================
+    function filterTable() {
+        const q = document.getElementById("searchInput").value.toLowerCase().trim();
+        if (!q) { renderTable(allData); return; }
+        const filtered = allData.filter(row =>
+            (row[0] || "").toLowerCase().includes(q) ||
+            (row[2] || "").toLowerCase().includes(q) ||
+            (row[3] || "").toLowerCase().includes(q)
+        );
+        renderTable(filtered);
+    }
+
+    // =============================================
+    // EXPORT CSV
+    // =============================================
+    function exportCSV() {
+        if (!allData.length) { alert("Tidak ada data untuk di-export."); return; }
+
+        const headers = ["ID", "Nama", "Email", "No HP", "Domisili", "Usia", "JK", "Pax", "Status", "Waktu Scan"];
+        const rows = allData.map(r =>
+            [r[0], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10] || ""]
+            .map(v => `"${(v ?? "").toString().replace(/"/g, '""')}"`)
+            .join(",")
+        );
+        const csv  = [headers.join(","), ...rows].join("\n");
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); // BOM untuk Excel
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `peserta_eid2026_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+</script>
+
+</body>
+</html>

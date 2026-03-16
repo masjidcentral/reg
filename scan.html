@@ -204,9 +204,7 @@
     // =============================================
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdgqlGxEPmxp5BXoNCJTEkmNTqG70MA4sojFPMZfJgtmUanvfj9R9sVaGFtV2Xf8Y6/exec";
 
-    // Password disimpan sebagai SHA-256 hash, bukan plaintext
-    // Hash dari "mco2026" — cara ganti: lihat komentar di admin.html
-    const PASS_HASH = "b0d6f305e9e5f4282bffaaecf9abf30f1a05ac820de25d3da5efde4be9e0bc33";
+    const PASS_ADMIN = "adminmco";
 
     const html5QrCode = new Html5Qrcode("reader");
     const statusBar   = document.getElementById("status-bar");
@@ -215,22 +213,16 @@
     // =============================================
     // LOGIN
     // =============================================
-    async function checkLogin() {
+    function checkLogin() {
         const input = document.getElementById("passInput").value;
-        const hash  = await sha256(input);
 
-        if (hash === PASS_HASH) {
+        if (input === PASS_ADMIN) {
             document.getElementById("login-overlay").style.display = "none";
             startScanner();
         } else {
             document.getElementById("login-err").style.display = "block";
             playSound("error");
         }
-    }
-
-    async function sha256(str) {
-        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
     // =============================================

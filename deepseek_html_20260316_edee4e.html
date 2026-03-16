@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pendaftaran Sholat Idul Fitri - Okayama Central Mosque</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:#f1f5f9;
+  color:#1e293b;
+}
+main{padding:40px 16px}
+.container{max-width:480px;margin:auto}
+
+.header{text-align:center;margin-bottom:28px}
+.header h1{margin:0;font-size:24px;color:#064e3b;font-weight:700}
+.header div{font-size:13px;color:#64748b;margin-top:4px}
+
+.card{
+  background:#fff;
+  padding:28px;
+  border-radius:22px;
+  border:1px solid #e2e8f0;
+}
+
+.field{margin-bottom:22px}
+label{
+  display:block;
+  margin-bottom:6px;
+  font-weight:600;
+  font-size:12px;
+  color:#475569;
+  letter-spacing:.04em;
+}
+
+.input-wrapper{position:relative}
+.input-wrapper i{
+  position:absolute;
+  left:16px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#94a3b8;
+}
+
+/* Padding kiri input diubah dari 44px menjadi 14px karena ikon dihapus */
+input,select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1.5px solid #e2e8f0;
+  font-size:14px;
+  background:#f8fafc;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:#10b981;
+  background:#fff;
+}
+
+/* Perbaikan tampilan select di iPad */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  line-height: 1.4;
+  padding-right: 40px;
+}
+
+/* Khusus tablet (iPad) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  select {
+    height: 48px;
+    font-size: 14px;
+  }
+}
+
+/* Gender Button Layout */
+.gender-group{
+  display:flex;
+  gap:12px;
+}
+
+.gender-group input{
+  display:none;
+}
+
+.gender-group label{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 16px;
+  border-radius:14px;
+  border:1.5px solid #e2e8f0;
+  background:#f8fafc;
+  font-size:14px;
+  font-weight:500;
+  line-height:1;
+  cursor:pointer;
+  transition:.2s ease;
+  color:#475569;
+}
+
+.gender-group label i{
+  font-size:16px;
+}
+
+.gender-group input:checked + label{
+  background:#ecfdf5;
+  border-color:#10b981;
+  color:#064e3b;
+}
+
+/* iPad / Tablet optimization */
+@media (min-width:768px) {
+  .gender-group label{
+    padding:16px;
+    font-size:15px;
+  }
+}
+
+/* Style OTP Layout */
+.otp-container { display: flex; gap: 8px; }
+.btn-otp {
+  width: auto;
+  white-space: nowrap;
+  padding: 0 16px;
+  font-size: 12px;
+  border-radius: 12px;
+  background: #064e3b;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.btn-otp:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+/* OTP verified state */
+.otp-verified {
+  background: #dcfce7 !important;
+  border: 1px dashed #10b981 !important;
+}
+
+.otp-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.otp-status.ok  { color: #15803d; }
+.otp-status.err { color: #b91c1c; }
+
+input[name="domisili"]{
+  font-size:14px;
+}
+
+/* Hint dihapus, class ini tidak digunakan lagi */
+.hint{
+  display: none;
+}
+
+.row{display:flex;gap:14px}
+.row .field{flex:1}
+
+button{
+  width:100%;
+  padding:16px;
+  background:#059669;
+  color:#fff;
+  border:none;
+  border-radius:16px;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+}
+button:disabled{background:#cbd5e1;cursor:not-allowed}
+
+.consent{
+  display:flex;
+  gap:12px;
+  padding:14px;
+  background:#f0fdf4;
+  border:1px solid #dcfce7;
+  border-radius:14px;
+  font-size:13px;
+}
+.consent input{
+  width:20px;
+  height:20px;
+  accent-color:#10b981;
+}
+
+.alert{
+  display:none;
+  background:#fff1f2;
+  color:#be123c;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:18px;
+  text-align:center;
+  font-size:13px;
+}
+
+footer{text-align:center;font-size:12px;color:#94a3b8;padding:28px}
+
+@media(max-width:480px){
+  .row{flex-direction:column}
+}
+</style>
+</head>
+
+<body>
+
+<main>
+<div class="container">
+
+<div class="alert" id="duplicateAlert"
+ data-id="Data ini sudah terdaftar"
+ data-en="This data is already registered"
+ data-ja="すでに登録されています"></div>
+
+<div class="header">
+  <h1 data-id="Pendaftaran Sholat Idul Fitri"
+      data-en="Eid Prayer Registration"
+      data-ja="参加登録"></h1>
+  <div>Okayama Central Mosque</div>
+</div>
+
+<div class="card">
+<form id="registrationForm">
+
+<div class="field">
+<label data-id="Nama Lengkap" data-en="Full Name" data-ja="氏名"></label>
+<div class="input-wrapper">
+<!-- Ikon dihapus -->
+<input name="nama_lengkap" id="nama_lengkap" required
+ data-id-ph="Nama sesuai identitas"
+ data-en-ph="Name as shown on ID"
+ data-ja-ph="身分証通りの氏名">
+</div>
+<!-- Hint dihapus -->
+</div>
+
+<div class="field">
+<label>Email</label>
+<div class="otp-container">
+  <div class="input-wrapper" style="flex:1">
+    <!-- Ikon dihapus -->
+    <input type="email" name="email" id="emailInput" required placeholder="contoh@email.com">
+  </div>
+  <button type="button" class="btn-otp" id="sendOtpBtn" onclick="sendOTP()">
+    <span data-id="Kirim Kode" data-en="Send Code" data-ja="コード送信"></span>
+  </button>
+</div>
+<!-- Hint dihapus -->
+</div>
+
+<!-- OTP Field: shown after kirim kode -->
+<div class="field" id="otpField" style="display:none; padding:15px; border-radius:14px; border:1px dashed #10b981">
+<label data-id="Masukkan Kode OTP" data-en="Enter OTP Code" data-ja="OTPコードを入力"></label>
+<div class="input-wrapper">
+<!-- Ikon dihapus -->
+<input type="text" id="otp_input" maxlength="4" placeholder="1234"
+  oninput="verifyOTP(this.value)">
+</div>
+<!-- Status text di bawah input OTP -->
+<div id="otpStatus" class="otp-status" style="display:none"></div>
+</div>
+
+<div class="field">
+<label data-id="Nomor HP" data-en="Phone Number" data-ja="電話番号"></label>
+<div class="input-wrapper">
+<!-- Ikon dihapus -->
+<input type="tel" name="no_hp" id="noHpInput" required placeholder="08012345678">
+</div>
+<!-- Hint dihapus -->
+</div>
+
+<div class="field">
+<label data-id="Domisili" data-en="City / Residence" data-ja="居住地"></label>
+<div class="input-wrapper">
+<!-- Ikon dihapus -->
+<input name="domisili" list="neighborhoods" required
+ data-id-ph="Cari kelurahan (Contoh: Kaminakano)"
+ data-en-ph="Search neighborhood (Ex: Kaminakano)"
+ data-ja-ph="町名を検索 (例：上中野)">
+<datalist id="neighborhoods">
+  <option value="Okayama-shi, Kita-ku, Kaminakano">
+  <option value="Okayama-shi, Kita-ku, Ima">
+  <option value="Okayama-shi, Kita-ku, Omoto">
+  <option value="Okayama-shi, Kita-ku, Tsushima">
+  <option value="Okayama-shi, Kita-ku, Hokan-cho">
+  <option value="Okayama-shi, Naka-ku, Nishigawara">
+  <option value="Okayama-shi, Minami-ku, Toyonari">
+  
+  <option value="Kurashiki-shi, Achi">
+  <option value="Kurashiki-shi, Nakasho">
+  <option value="Kurashiki-shi, Chaya-machi">
+  <option value="Kurashiki-shi, Mizushima">
+  <option value="Kurashiki-shi, Kojima">
+  <option value="Kurashiki-shi, Tamashima">
+
+  <option value="Tamano-shi, Chikko">
+  <option value="Tamano-shi, Uno">
+  <option value="Tamano-shi, Hibibi">
+  <option value="Tamano-shi, Shibukawa">
+
+  <option value="Soja-shi, Chuo">
+  <option value="Soja-shi, Kiyone">
+  <option value="Soja-shi, Yamate">
+
+  <option value="Akaiwa-shi, Sanyo">
+  <option value="Setouchi-shi, Oku-cho">
+</datalist>
+</div>
+<!-- Hint dihapus -->
+</div>
+
+<div class="row">
+<div class="field">
+<label data-id="Usia" data-en="Age" data-ja="年齢"></label>
+<div class="input-wrapper">
+<!-- Ikon dihapus -->
+<input type="number" name="usia" required>
+</div>
+<!-- Hint dihapus -->
+</div>
+
+<div class="field">
+<label data-id="Jumlah Orang" data-en="Number of People" data-ja="人数"></label>
+<div class="input-wrapper">
+<!-- Ikon dihapus -->
+<input type="number" name="jumlah_orang" min="1" value="1" required>
+</div>
+<!-- Hint dihapus -->
+</div>
+</div>
+
+<div class="field">
+<label data-id="Jenis Kelamin" data-en="Gender" data-ja="性別"></label>
+
+<div class="gender-group">
+  <input type="radio" id="jk_l" name="jk" value="Laki-laki" required>
+  <label for="jk_l">
+    <i class="fas fa-mars"></i>  <!-- Ikon gender tetap dipertahankan -->
+    <span data-id="Laki-laki" data-en="Male" data-ja="男性"></span>
+  </label>
+
+  <input type="radio" id="jk_p" name="jk" value="Perempuan">
+  <label for="jk_p">
+    <i class="fas fa-venus"></i>  <!-- Ikon gender tetap dipertahankan -->
+    <span data-id="Perempuan" data-en="Female" data-ja="女性"></span>
+  </label>
+</div>
+</div>
+
+<div class="field">
+<label class="consent">
+<input type="checkbox" required>
+<span data-id="Saya menyetujui data digunakan untuk keperluan acara ini"
+      data-en="I agree that my data will be used for this event"
+      data-ja="本イベントのために個人情報を使用することに同意します"></span>
+</label>
+</div>
+
+<button id="submitBtn"
+ data-id="Daftar"
+ data-en="Register"
+ data-ja="登録"></button>
+
+</form>
+</div>
+</div>
+</main>
+
+<footer>© 2026 — Masjid Central Okayama</footer>
+
+<script>
+// =============================================
+// KONFIGURASI
+// =============================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvLVMIbhBThHJ8l3d4Rppo1GvDbgeVjELq8_zOtzD7WHaWIaEHhVqHqyVJpgiaiDzp/exec";
+
+// =============================================
+// DETEKSI BAHASA
+// =============================================
+const lang = navigator.language.startsWith("ja") ? "ja"
+           : navigator.language.startsWith("en") ? "en" : "id";
+
+document.querySelectorAll("[data-id]").forEach(el => {
+  el.textContent = el.dataset[lang] || el.dataset.id;
+});
+document.querySelectorAll("[data-id-ph]").forEach(el => {
+  el.placeholder = el.dataset[`${lang}Ph`] || el.dataset.idPh;
+});
+
+// =============================================
+// REFERENSI ELEMEN (gunakan getElementById, bukan implicit global)
+// =============================================
+const emailInput      = document.getElementById("emailInput");
+const noHpInput       = document.getElementById("noHpInput");
+const namaInput       = document.getElementById("nama_lengkap");
+const sendOtpBtn      = document.getElementById("sendOtpBtn");
+const otpField        = document.getElementById("otpField");
+const otpInput        = document.getElementById("otp_input");
+const otpStatus       = document.getElementById("otpStatus");
+const duplicateAlert  = document.getElementById("duplicateAlert");
+const submitBtn       = document.getElementById("submitBtn");
+const registrationForm = document.getElementById("registrationForm");
+
+// =============================================
+// STATE OTP
+// =============================================
+let isVerified = false;         // true setelah server konfirmasi OTP
+let otpToken   = "";            // token sesi dari server (bukan kode OTP itu sendiri)
+
+// =============================================
+// TERJEMAHAN PESAN
+// =============================================
+const messages = {
+  fillEmail:    { id: "Mohon isi Nama dan Email dulu",       en: "Please fill in Name and Email first",    ja: "先に名前とメールアドレスを入力してください" },
+  verifyOtp:    { id: "Mohon verifikasi kode OTP dulu",      en: "Please verify the OTP code first",       ja: "先にOTPコードを確認してください" },
+  otpSent:      { id: "Kode OTP terkirim ke email!",         en: "OTP code sent to your email!",           ja: "OTPがメールに送信されました！" },
+  otpOk:        { id: "✅ Email terverifikasi",              en: "✅ Email verified",                       ja: "✅ メール確認済み" },
+  otpWrong:     { id: "❌ Kode salah, coba lagi",            en: "❌ Wrong code, try again",               ja: "❌ コードが違います" },
+  otpError:     { id: "Gagal mengirim OTP, coba lagi",       en: "Failed to send OTP, please retry",       ja: "OTP送信に失敗しました" },
+  duplicate:    { id: "Data ini sudah terdaftar",            en: "This data is already registered",        ja: "すでに登録されています" },
+  processing:   { id: "Sedang memproses…",                   en: "Processing…",                            ja: "処理中…" },
+  connError:    { id: "Koneksi bermasalah, coba lagi",       en: "Connection error, please try again",     ja: "接続エラーが発生しました" },
+};
+
+// =============================================
+// KIRIM OTP  — kode OTP ada di server, tidak dikirim ke browser
+// =============================================
+async function sendOTP() {
+  const emailVal = emailInput.value.trim();
+  const namaVal  = namaInput.value.trim();
+
+  if (!emailVal || !namaVal) {
+    alert(messages.fillEmail[lang]);
+    return;
+  }
+
+  sendOtpBtn.disabled = true;
+  sendOtpBtn.textContent = "...";
+
+  try {
+    const url = `${SCRIPT_URL}?action=send_otp`
+              + `&email=${encodeURIComponent(emailVal)}`
+              + `&nama=${encodeURIComponent(namaVal)}`;
+    const r = await fetch(url);
+    const j = await r.json();
+
+    if (j.status === "success") {
+      // Server hanya mengembalikan token sesi, BUKAN kode OTP
+      otpToken = j.token || "";
+      otpField.style.display = "block";
+      otpField.className = "field";          // reset class
+      showOtpStatus("", "");
+      alert(messages.otpSent[lang]);
+    } else {
+      alert(j.message || messages.otpError[lang]);
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = lang === "ja" ? "コード送信" : lang === "en" ? "Send Code" : "Kirim Kode";
+    }
+  } catch (e) {
+    alert(messages.otpError[lang]);
+    sendOtpBtn.disabled = false;
+    sendOtpBtn.textContent = lang === "ja" ? "コード送信" : lang === "en" ? "Send Code" : "Kirim Kode";
+  }
+}
+
+// =============================================
+// VERIFIKASI OTP — dikirim ke server untuk dicek
+// =============================================
+let verifyTimer = null;
+async function verifyOTP(code) {
+  clearTimeout(verifyTimer);
+  if (code.length < 4) {
+    if (isVerified) {
+      isVerified = false;
+      otpField.classList.remove("otp-verified");
+      showOtpStatus("", "");
+    }
+    return;
+  }
+
+  verifyTimer = setTimeout(async () => {
+    try {
+      const url = `${SCRIPT_URL}?action=verify_otp`
+                + `&token=${encodeURIComponent(otpToken)}`
+                + `&code=${encodeURIComponent(code)}`
+                + `&email=${encodeURIComponent(emailInput.value.trim())}`;
+      const r = await fetch(url);
+      const j = await r.json();
+
+      if (j.status === "success") {
+        isVerified = true;
+        otpInput.disabled = true;
+        otpField.classList.add("otp-verified");
+        showOtpStatus(messages.otpOk[lang], "ok");
+      } else {
+        isVerified = false;
+        otpField.classList.remove("otp-verified");
+        showOtpStatus(messages.otpWrong[lang], "err");
+      }
+    } catch {
+      showOtpStatus(messages.otpError[lang], "err");
+    }
+  }, 400); // debounce 400ms agar tidak spam request
+}
+
+function showOtpStatus(text, type) {
+  otpStatus.textContent = text;
+  otpStatus.className = `otp-status ${type}`;
+  otpStatus.style.display = text ? "flex" : "none";
+}
+
+// =============================================
+// CEK DUPLIKAT — debounce 800ms
+// =============================================
+let dupTimer = null;
+function checkDuplicate() {
+  clearTimeout(dupTimer);
+  dupTimer = setTimeout(async () => {
+    const eVal = emailInput.value.trim();
+    const hVal  = noHpInput.value.trim();
+    if (!eVal || !hVal) return;
+
+    try {
+      const r = await fetch(
+        `${SCRIPT_URL}?action=check_duplicate&email=${encodeURIComponent(eVal)}&no_hp=${encodeURIComponent(hVal)}`
+      );
+      const j = await r.json();
+      duplicateAlert.style.display = j.isDuplicate ? "block" : "none";
+      submitBtn.disabled = j.isDuplicate;
+    } catch { /* silent */ }
+  }, 800);
+}
+
+emailInput.addEventListener("input", checkDuplicate);
+noHpInput.addEventListener("input", checkDuplicate);
+
+// =============================================
+// SUBMIT FORM
+// =============================================
+registrationForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!isVerified) {
+    alert(messages.verifyOtp[lang]);
+    return;
+  }
+
+  submitBtn.disabled = true;
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = messages.processing[lang];
+
+  // Buat ID peserta: EID-DDMM-XXX
+  const now = new Date();
+  const datePart   = String(now.getDate()).padStart(2, "0") + String(now.getMonth() + 1).padStart(2, "0");
+  const randomPart = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const cantikID   = `EID-${datePart}-${randomPart}`;
+
+  const fd = new FormData(registrationForm);
+  fd.append("action", "register");
+  fd.append("id", cantikID);
+  fd.append("lang", lang);
+  // Kirim token OTP yang sudah diverifikasi agar server bisa validasi ulang
+  fd.append("otp_token", otpToken);
+
+  try {
+    const r = await fetch(SCRIPT_URL, { method: "POST", body: fd });
+    const j = await r.json();
+
+    if (j.status === "success") {
+      window.location.href = "success.html?" + new URLSearchParams(fd).toString();
+    } else {
+      alert(j.message || "Error");
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  } catch {
+    alert(messages.connError[lang]);
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

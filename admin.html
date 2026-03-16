@@ -165,14 +165,9 @@
     // =============================================
     // KONFIGURASI — gunakan SCRIPT_URL yang SAMA dengan index.html
     // =============================================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvLVMIbhBThHJ8l3d4Rppo1GvDbgeVjELq8_zOtzD7WHaWIaEHhVqHqyVJpgiaiDzp/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdgqlGxEPmxp5BXoNCJTEkmNTqG70MA4sojFPMZfJgtmUanvfj9R9sVaGFtV2Xf8Y6/exec";
 
-    // Password disimpan sebagai SHA-256 hash, bukan plaintext
-    // Hash dari "mco2026" — ganti dengan hash password baru jika perlu
-    // Cara buat hash baru: buka DevTools > Console > lalu jalankan:
-    //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('passwordBaru'))
-    //     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
-    const PASS_HASH = "b0d6f305e9e5f4282bffaaecf9abf30f1a05ac820de25d3da5efde4be9e0bc33"; // hash "mco2026"
+    const PASS_ADMIN = "adminmco";
 
     // Raw data dari server (untuk filtering di client)
     let allData = [];
@@ -180,22 +175,16 @@
     // =============================================
     // LOGIN — bandingkan hash, bukan plaintext
     // =============================================
-    async function login() {
+    function login() {
         const input = document.getElementById("passInput").value;
-        const hash  = await sha256(input);
 
-        if (hash === PASS_HASH) {
+        if (input === PASS_ADMIN) {
             document.getElementById("login-overlay").style.display = "none";
             loadData();
             setInterval(loadData, 30000); // Auto-refresh tiap 30 detik
         } else {
             document.getElementById("login-err").style.display = "block";
         }
-    }
-
-    async function sha256(str) {
-        const buf  = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
     // =============================================

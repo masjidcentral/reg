@@ -508,7 +508,8 @@ async function downloadCard() {
     const hdrGrad = ctx.createLinearGradient(0, 0, W, hdrH);
     hdrGrad.addColorStop(0, "#064e3b");
     hdrGrad.addColorStop(1, "#059669");
-    roundRect(ctx, 0, 0, W, hdrH + 30, [0, 0, 32, 32], hdrGrad);
+    // PERBAIKAN: gunakan angka tunggal 32, bukan array
+    roundRect(ctx, 0, 0, W, hdrH + 30, 32, hdrGrad);
 
     // Mosque pattern on header (dots)
     ctx.fillStyle = "rgba(255,255,255,0.04)";
